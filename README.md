@@ -8,7 +8,7 @@ Build
     git clone https://github.com/abeniaminov/erlelmchat.git
     cd erlelmchat
     ./rebar3 get_deps
-    ./rebar compile
+    ./rebar3 compile
     ./chat.sh start or ./chat.sh startd 
     
     http://localhost:8001
