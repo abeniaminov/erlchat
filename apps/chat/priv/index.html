@@ -1,0 +1,176 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>Websocket client</title>
+    <script src="/static/jquery.min.js"></script>
+    <script type="text/javascript">
+      
+      var websocket;
+      $(document).ready(init);
+      
+      function init() {
+          $('#server').val("ws://" + window.location.hostname + ":9001" + "/websocket");
+          $('#user_name').val("Murka");
+          if(!("WebSocket" in window)){  
+              $('#status').append('<p><span style="color: red;">websockets are not supported </span></p>');
+              $("#navigation").hide();  
+          } else {
+              $('#status').append('<p><span style="color: green;">websockets are supported </span></p>');
+              connect();
+              get_current_room();
+          };
+              $("#connected").hide(); 	
+              $("#content").hide(); 	
+      };
+
+      function connect()
+      {
+          wsHost = $("#server").val()
+          websocket = new WebSocket(wsHost);
+          showScreen('<b>Connecting to: ' +  wsHost + '</b>'); 
+          websocket.onopen = function(evt) { onOpen(evt) }; 
+          websocket.onclose = function(evt) { onClose(evt) }; 
+          websocket.onmessage = function(evt) { onMessage(evt) }; 
+          websocket.onerror = function(evt) { onError(evt) };
+      };  
+      
+      function disconnect() {
+          sendAnyTxt('I just disconnected');
+          websocket.close();
+      }; 
+
+      function toggle_connection(){
+          if(websocket.readyState == websocket.OPEN){
+              disconnect();
+          } else {
+              connect();
+          };
+      };
+
+      function get_current_room() {
+          msg = JSON.stringify({command: "get_active_rooms"});
+          sendMsg(msg);
+      };
+
+      function join_user() {
+          uname = $("#user_name").val();
+          room_name = $("#room").val();
+          msg = JSON.stringify({room: room_name, command: "join", user_name: uname});
+          clearScreen();
+          sendMsg(msg);
+      };
+
+      function sendTxt() {
+              txt = $("#send_txt").val();
+              sendAnyTxt(txt);
+      };
+
+      function sendAnyTxt(txt) {
+          uname = $("#user_name").val();
+          room_name = $("#room").val();
+          msg = JSON.stringify({room: room_name, command: "new_message", user_name: uname, message: txt});
+          sendMsg(msg);
+      };
+
+      function sendMsg(msg) {
+          if(websocket.readyState == websocket.OPEN){
+              websocket.send(msg);
+          } else {
+               showScreen('websocket is not connected');
+          };
+      };
+
+      function onOpen(evt) { 
+          showScreen('<span style="color: green;">CONNECTED </span>'); 
+          $("#connected").fadeIn('slow');
+          $("#content").fadeIn('slow');
+          $('#bconnection').text('Disconnect');
+          get_current_room();
+      };  
+
+      function onClose(evt) { 
+          showScreen('<span style="color: red;">DISCONNECTED </span>');
+          $('#bconnection').text('Connect');
+      };  
+
+      function onMessage(evt) {
+          obj =  JSON.parse(evt.data);
+          console.log(obj);
+          switch (obj.function){
+              case 'show_message':
+                showMessages(obj.msgs);
+              case 'active_rooms':
+                showRooms(obj.msgs);
+              default:
+                console.log("can't recognize it");
+          };
+      };
+
+      function showMessages(messageList){
+           messageList.forEach(element =>
+             showScreen('<span style="color: blue;">' +
+                  element.user_name + ':  ' + element.message + '</span>'));
+      };
+
+      function showRooms(roomList){
+           console.log(roomList);
+           if (!roomList) {
+           $("#room").val(roomList[0]);
+           } else $("#room").val('common_room');
+      };
+
+      function onError(evt) {
+          showScreen('<span style="color: red;">ERROR: ' + evt.data+ '</span>');
+      };
+
+      function showScreen(txt) { 
+          $('#output').append('<p><div>' + txt + '</div></p>');
+      };
+
+      function clearScreen() 
+      { 
+          $('#output').html("");
+      };
+    </script>
+  </head>
+
+  <div>
+    <div id="header">
+      <h1>Websocket client</h1>
+      <div id="status"></div>
+    </div>
+
+
+
+
+
+      <p id="connecting">
+	<input type='hidden' id="server" value="">
+    <input type='hidden' id="room" value="">
+	<button type="button" id="bconnection" onclick="toggle_connection()">connection</button>
+    <div id="navigation">
+
+        <p id="joining">
+            <input type='text' id="user_name" value=><label for="user_name">user name</label>
+            <button type="button" onclick="join_user()">Join</button>
+        </p>
+    <div id="joined">
+        <p>
+      </p>
+      <div id="connected">				
+	   <p>
+
+	    <input type='text' id="send_txt" value="" >
+	    <button type="button" onclick="sendTxt();">send</button>
+	    </p>
+      </div>
+
+      <div id="content">						
+	<button id="clear" onclick="clearScreen()" >Clear text</button>
+	<div id="output"></div>
+      </div>
+
+    </div>
+  </div>
+   </body>
+</html> 

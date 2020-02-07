@@ -1,17 +1,11 @@
-.eunit
-*.o
-*.beam
 *.plt
 erl_crash.dump
+_build/*
+.idea/*
 .concrete/DEV_MODE
-
-# rebar 2.x
 .rebar
-rel/example_project
-ebin/*.beam
-deps
-
-# rebar 3
-.rebar3
-_build/
-_checkouts/
+rebar.lock
+tvz_api.3.2.iml
+apps/chat/log/*
+/erlelmchat.iml
+/logs/

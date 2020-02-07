@@ -1,0 +1,6 @@
+%-sname api
+%-setcookie api_cookie
+
++K true
++A30
+-pa ./-build/default/lib/*/ebin
